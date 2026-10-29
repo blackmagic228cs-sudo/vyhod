@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; media-src 'none'; upgrade-insecure-requests">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#eef3f9" media="(prefers-color-scheme: light)">
+  <meta name="description" content="Простой офлайн-чек-лист перед выходом из квартиры: краны, газ, утюг, окна, свет, замок и ключи.">
+  <meta name="robots" content="noindex">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Выход">
+  <title>Перед выходом</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 12.6l4.6 4.6L19.5 6.7"/>
+          </svg>
+        </span>
+        <div>
+          <h1>Перед выходом</h1>
+          <p class="clock" id="clock">—</p>
+        </div>
+      </div>
+      <button class="icon-btn" type="button" aria-label="Настроить список" data-open-edit>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 7h9M18.5 7H20M4 17h3.5M13 17h7"/>
+          <circle cx="15.5" cy="7" r="2.2"/>
+          <circle cx="9.5" cy="17" r="2.2"/>
+        </svg>
+      </button>
+    </header>
+
+    <noscript>
+      <p class="noscript">Для работы чек-листа нужен JavaScript. Включите его в настройках браузера.</p>
+    </noscript>
+
+    <main>
+      <section class="hero" id="hero" aria-labelledby="heroStatus">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#34d399"/>
+                <stop offset="1" stop-color="#22d3ee"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="100" cy="100" r="88"/>
+            <circle class="ring-value" id="ringValue" cx="100" cy="100" r="88" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+          </svg>
+          <div class="ring-center">
+            <span class="ring-count" id="doneCount">0</span>
+            <span class="ring-total">из <span id="totalCount">0</span></span>
+          </div>
+        </div>
+        <div class="hero-copy">
+          <p class="hero-kicker" id="heroKicker">Проверка</p>
+          <h2 id="heroStatus">Отметьте пункты</h2>
+          <p class="hero-sub" id="heroSub">Нажмите на пункт, когда проверите</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="listTitle">
+        <div class="section-head">
+          <h2 class="section-title" id="listTitle">Чек-лист</h2>
+          <span class="section-count" id="sectionCount">0 из 0</span>
+        </div>
+        <div class="checklist" id="list" role="group" aria-labelledby="listTitle"></div>
+        <p class="empty" id="emptyState" hidden>Список пуст. Добавьте пункты в настройках.</p>
+      </section>
+
+      <div class="actions">
+        <button class="btn btn-soft" id="resetBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 10a8 8 0 1 1 2.3 7.1"/>
+            <path d="M4 5v5h5"/>
+          </svg>
+          Начать заново
+        </button>
+        <button class="btn btn-soft" type="button" data-open-edit>Изменить список</button>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <p>Отметки хранятся только на этом телефоне.<br>Ничего не отправляется в интернет.</p>
+      <button class="link-btn" id="installBtn" type="button" hidden>Установить на телефон</button>
+    </footer>
+  </div>
+
+  <dialog class="sheet" id="editDialog" aria-labelledby="editTitle">
+    <div class="sheet-head">
+      <div>
+        <h2 id="editTitle">Мой список</h2>
+        <p class="sheet-sub">Уберите лишнее или добавьте своё</p>
+      </div>
+      <button class="icon-btn" id="closeDialog" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+    </div>
+
+    <form class="add-form" id="addForm" autocomplete="off">
+      <label class="sr-only" for="newItem">Новый пункт</label>
+      <input id="newItem" name="label" type="text" maxlength="40" placeholder="Например: выключить утюг" required>
+      <button class="btn btn-primary add-btn" type="submit" aria-label="Добавить пункт">+</button>
+    </form>
+
+    <p class="hint" id="editHint" role="status" aria-live="polite">До 30 пунктов. Нажмите ✕, чтобы удалить.</p>
+
+    <div class="sheet-body">
+      <div class="edit-list" id="editList" role="group" aria-label="Пункты чек-листа"></div>
+    </div>
+
+    <div class="sheet-foot">
+      <button class="btn btn-soft" id="restoreBtn" type="button">Стандартные</button>
+      <button class="btn btn-primary" id="doneEditBtn" type="button">Готово</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
